@@ -45,6 +45,10 @@ Set `RESEND_API_KEY` and `EMAIL_FROM` to enable transactional emails (new picks,
 - The personal tracker uses the member's own odds and stakes and is never mixed with the service's unit-based record.
 - Homepage statistics show "Not yet available" until at least 10 picks are settled.
 
+## Deployment
+
+The GitHub repository is linked to the Vercel project `picksbpickle` on the `cfrady` team, so every push creates a preview deployment and pushes to the production branch go live. Set the production branch and environment variables in the Vercel project settings.
+
 ## Compliance
 
 Terms, Privacy and Responsible Gambling pages are templates and require jurisdiction-specific legal review before launch, as does the advertising of a paid picks service. The platform does not accept wagers or place bets.
