@@ -18,7 +18,7 @@ With no Supabase environment variables set, the app runs in **demo mode**: an in
 1. Create a Supabase project and run `supabase/migrations/0001_init.sql` (SQL editor or `supabase db push`). It creates all tables, enums, RLS policies, the `settle_pick` / `correct_settlement` / `publish_pick` / `release_scheduled_picks` RPCs, the immutability trigger for published picks, and the `promo` storage bucket.
 2. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`.
 3. Put your email in `ADMIN_EMAILS`; that account is promoted to `admin` on first sign-in (or run `update public.profiles set role='admin' where email='…'`).
-4. Deploy to Vercel. `vercel.json` schedules `/api/cron/release` every 5 minutes to publish scheduled picks (set `CRON_SECRET`).
+4. Deploy to Vercel. `vercel.json` schedules `/api/cron/release` once a day (the Hobby plan's limit) to publish scheduled picks; set `CRON_SECRET`. On a Pro plan change the schedule to `*/5 * * * *`, or use Supabase `pg_cron` to call `release_scheduled_picks()` every few minutes. Admins can also press "Release due" on the admin overview at any time.
 
 ## Billing
 

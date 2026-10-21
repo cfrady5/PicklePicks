@@ -65,7 +65,7 @@ export function PickForm({ pick }: { pick?: Pick }) {
           </div>
           {intent === "schedule" && <Field label="Release at"><Input name="scheduledFor" type="datetime-local" defaultValue={localInput(pick?.scheduledFor)} required /></Field>}
         </div>
-        <p className="mt-3 text-xs text-muted-2">{intent === "publish" ? "Publishing freezes the selection, odds, stake and analysis, records a timestamped snapshot, and notifies subscribers. This cannot be undone." : intent === "schedule" ? "The pick will be published automatically at the release time (cron every 5 minutes) or via 'Release due' on the overview." : "Drafts are private and fully editable."}</p>
+        <p className="mt-3 text-xs text-muted-2">{intent === "publish" ? "Publishing freezes the selection, odds, stake and analysis, records a timestamped snapshot, and notifies subscribers. This cannot be undone." : intent === "schedule" ? "The pick will be published automatically at the release time by the scheduled job, or immediately via 'Release due' on the overview." : "Drafts are private and fully editable."}</p>
         {state?.error && <p role="alert" className="mt-4 rounded-lg border border-loss/40 bg-loss/10 px-3 py-2 text-sm text-loss">{state.error}</p>}
         {state?.ok && <p className="mt-4 rounded-lg border border-brand/40 bg-brand/10 px-3 py-2 text-sm text-brand">Saved.</p>}
         <div className="mt-5 flex items-center gap-3">
