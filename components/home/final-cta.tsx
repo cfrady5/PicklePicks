@@ -3,6 +3,8 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Mascot } from "@/components/brand/logo";
 import { Reveal } from "@/components/motion/reveal";
+import { TikTokIcon } from "@/components/brand/tiktok-icon";
+import { SOCIAL } from "@/lib/constants";
 
 export function FinalCta() {
   return (
@@ -18,6 +20,9 @@ export function FinalCta() {
               <Button size="lg" asChild><Link href="/pricing">Get Today&rsquo;s Picks <ArrowRight className="h-4 w-4" /></Link></Button>
               <Button size="lg" variant="secondary" asChild><Link href="/results">The Pickle&rsquo;s Record</Link></Button>
             </div>
+            <a href={SOCIAL.tiktok.url} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-muted transition hover:text-brand">
+              <TikTokIcon /> Follow the Pickle on TikTok — {SOCIAL.tiktok.handle}
+            </a>
           </div>
           <div className="relative mt-8 hidden lg:mt-0 lg:block"><Mascot size={220} className="h-[220px] w-[220px]" /></div>
         </div>

@@ -7,6 +7,8 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
+import { SOCIAL } from "@/lib/constants";
+import { TikTokIcon } from "@/components/brand/tiktok-icon";
 
 export interface NavLink { href: string; label: string }
 
@@ -41,6 +43,7 @@ export function MobileNav({ links, authed, isAdmin }: { links: NavLink[]; authed
             {authed && <Link href="/dashboard" className="rounded-xl px-4 py-3 text-lg font-semibold text-text hover:bg-white/5">Dashboard</Link>}
             {isAdmin && <Link href="/admin" className="rounded-xl px-4 py-3 text-lg font-semibold text-text hover:bg-white/5">Admin</Link>}
           </nav>
+          <a href={SOCIAL.tiktok.url} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-2 px-4 text-sm font-semibold text-muted hover:text-brand"><TikTokIcon /> {SOCIAL.tiktok.handle}</a>
           <div className="mt-auto flex flex-col gap-2">
             {authed ? (
               <form action="/auth/signout" method="post"><Button variant="secondary" className="w-full" type="submit">Sign out</Button></form>

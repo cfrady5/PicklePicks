@@ -2,6 +2,10 @@ export const SITE_NAME = "Mr. Pickle's Picks";
 export const SITE_TAGLINE = "Big picks. Big personality. Real results.";
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+export const SOCIAL = {
+  tiktok: { label: "TikTok", handle: "@mr.pickles.picks", url: "https://www.tiktok.com/@mr.pickles.picks" },
+};
+
 export const SPORTS = [
   { key: "NBA", label: "NBA", emoji: "🏀", league: "National Basketball Association" },
   { key: "NFL", label: "NFL", emoji: "🏈", league: "National Football League" },

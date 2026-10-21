@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/constants";
+import { SITE_NAME, SITE_TAGLINE, SITE_URL, SOCIAL } from "@/lib/constants";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
 const grotesk = Space_Grotesk({ variable: "--font-grotesk", subsets: ["latin"], weight: ["500", "700"], display: "swap" });
@@ -18,10 +18,22 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#080d0a", colorScheme: "dark" };
 
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: SITE_NAME,
+  url: SITE_URL,
+  logo: `${SITE_URL}/mascot-512.png`,
+  sameAs: [SOCIAL.tiktok.url],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${grotesk.variable} dark h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+        {children}
+      </body>
     </html>
   );
 }

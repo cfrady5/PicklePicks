@@ -1,27 +1,38 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/logo";
-import { DISCLAIMER_SHORT } from "@/lib/constants";
+import { DISCLAIMER_SHORT, SOCIAL } from "@/lib/constants";
+import { TikTokIcon } from "@/components/brand/tiktok-icon";
 
-const COLS = [
+const COLS: { title: string; links: [string, string][] }[] = [
   { title: "Product", links: [["/results", "The Pickle's Record"], ["/pricing", "Pricing"], ["/how-it-works", "How It Works"], ["/dashboard", "Member Dashboard"]] },
   { title: "Company", links: [["/legal/terms", "Terms of Service"], ["/legal/privacy", "Privacy Policy"], ["/responsible-gambling", "Responsible Gambling"], ["/dashboard/settings", "In a Pickle? (Help)"]] },
+  { title: "Follow", links: [[SOCIAL.tiktok.url, `TikTok ${SOCIAL.tiktok.handle}`]] },
 ];
 
 export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-border bg-bg-2/60">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_0.8fr]">
           <div>
             <Logo />
             <p className="mt-4 max-w-sm text-sm text-muted">Big picks. Big personality. Real results — every one of them on the public ledger, wins and losses alike.</p>
+            <a href={SOCIAL.tiktok.url} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex items-center gap-2 rounded-xl border border-border-strong bg-card-2 px-3.5 py-2 text-sm font-semibold text-text transition hover:border-brand/60 hover:text-brand">
+              <TikTokIcon /> Follow {SOCIAL.tiktok.handle} on TikTok
+            </a>
           </div>
           {COLS.map((c) => (
             <div key={c.title}>
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted">{c.title}</h4>
               <ul className="mt-4 space-y-2.5">
                 {c.links.map(([href, label]) => (
-                  <li key={href}><Link href={href} className="text-sm text-text/80 transition hover:text-brand">{label}</Link></li>
+                  <li key={href}>
+                    {href.startsWith("http") ? (
+                      <a href={href} target="_blank" rel="noopener noreferrer" className="text-sm text-text/80 transition hover:text-brand">{label}</a>
+                    ) : (
+                      <Link href={href} className="text-sm text-text/80 transition hover:text-brand">{label}</Link>
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>
