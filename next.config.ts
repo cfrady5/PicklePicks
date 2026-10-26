@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  outputFileTracingIncludes: {
+    "/**/*": ["./assets/fonts/**/*", "./public/mascot-512.png"],
+  },
+  serverExternalPackages: ["@resvg/resvg-js", "sharp"],
   images: {
     remotePatterns: [{ protocol: "https", hostname: "**.supabase.co" }],
   },

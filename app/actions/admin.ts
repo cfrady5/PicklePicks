@@ -8,6 +8,15 @@ import { SPORTS, BET_TYPES } from "@/lib/constants";
 import { isDemoMode } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { sendEmail, templates } from "@/lib/email";
+import { after } from "next/server";
+import { HYPE_SETTINGS, startHypeForPick, advanceJob } from "@/lib/hype/pipeline";
+
+function maybeAutoHype(pickId: string, actorId: string) {
+  if (!HYPE_SETTINGS.autoOnPublish) return;
+  after(async () => {
+    try { const job = await startHypeForPick(pickId, actorId); await advanceJob(job.id, { budgetMs: 240_000 }); } catch (e) { console.error("[hype] auto-run failed", e); }
+  });
+}
 
 export type AdminState = { error?: string; ok?: boolean; id?: string } | undefined;
 
@@ -77,7 +86,7 @@ export async function createPick(_prev: AdminState, formData: FormData): Promise
   if (parsed.data.intent === "schedule" && !parsed.data.scheduledFor) return { error: "Choose a release time to schedule." };
   const repo = getRepo();
   let pick = await repo.createPick(toInput(parsed.data), actorOf(admin));
-  if (parsed.data.intent === "publish") pick = await repo.publishPick(pick.id, actorOf(admin));
+  if (parsed.data.intent === "publish") { pick = await repo.publishPick(pick.id, actorOf(admin)); maybeAutoHype(pick.id, admin.id); }
   revalidateAll();
   redirect(`/admin/picks/${pick.id}?saved=1`);
 }
@@ -90,7 +99,7 @@ export async function updatePick(_prev: AdminState, formData: FormData): Promise
   const repo = getRepo();
   try {
     await repo.updateUnpublishedPick(id, toInput(parsed.data), actorOf(admin));
-    if (parsed.data.intent === "publish") await repo.publishPick(id, actorOf(admin));
+    if (parsed.data.intent === "publish") { await repo.publishPick(id, actorOf(admin)); maybeAutoHype(id, admin.id); }
     else if (parsed.data.intent === "schedule" && parsed.data.scheduledFor) await repo.schedulePick(id, new Date(parsed.data.scheduledFor).toISOString(), actorOf(admin));
   } catch (e) { return { error: (e as Error).message }; }
   revalidateAll();
@@ -102,6 +111,7 @@ export async function publishPickNow(formData: FormData) {
   const admin = await requireAdmin();
   const id = String(formData.get("id"));
   await getRepo().publishPick(id, actorOf(admin));
+  maybeAutoHype(id, admin.id);
   revalidateAll();
   revalidatePath(`/admin/picks/${id}`);
 }

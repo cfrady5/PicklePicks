@@ -9,13 +9,15 @@ import { SettleForm, CorrectForm, VoidForm } from "@/components/admin/settle-pan
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime, formatUnits } from "@/lib/utils";
+import { getHypeStore } from "@/lib/hype/store";
+import { HypePickPanel } from "@/components/hype/pick-panel";
 
 export default async function AdminPickPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
   const [{ id }, { saved }] = await Promise.all([params, searchParams]);
   const repo = getRepo();
   const pick = await repo.getPick(id);
   if (!pick) notFound();
-  const history = await repo.getPickHistory(id);
+  const [history, hypeJobs] = await Promise.all([repo.getPickHistory(id), getHypeStore().listJobs({ pickId: id, limit: 10 })]);
   const editable = pick.status === "draft" || pick.status === "scheduled";
 
   return (
@@ -45,6 +47,7 @@ export default async function AdminPickPage({ params, searchParams }: { params: 
                 <div className="mt-3"><CorrectForm pick={pick} /></div>
               </section>
             )}
+            <HypePickPanel pickId={pick.id} jobs={hypeJobs} enabled={Boolean(pick.publishedAt)} />
             {pick.status !== "voided" && (
               <section className="card rounded-2xl p-5"><h2 className="font-display text-base font-bold">Void</h2><p className="mt-1 text-xs text-muted">For postponed games or pulled lines. Returns the stake (0u) and stays on the public ledger.</p><div className="mt-3"><VoidForm pick={pick} /></div></section>
             )}

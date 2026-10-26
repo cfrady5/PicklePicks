@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ListChecks, PlusCircle, Users, CreditCard, PanelsTopLeft, Megaphone, BarChart3, Menu, X, LogOut, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, ListChecks, PlusCircle, Users, CreditCard, PanelsTopLeft, Megaphone, BarChart3, Menu, X, LogOut, ArrowLeft, Clapperboard } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/admin/picks", label: "Picks", icon: ListChecks },
   { href: "/admin/picks/new", label: "Publish a pick", icon: PlusCircle, exact: true },
+  { href: "/admin/hype", label: "Meme video agent", icon: Clapperboard },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/subscriptions", label: "Subscriptions", icon: CreditCard },
   { href: "/admin/content", label: "Content & pricing", icon: PanelsTopLeft },
