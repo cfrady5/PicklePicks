@@ -15,10 +15,17 @@ With no Supabase environment variables set, the app runs in **demo mode**: an in
 
 ## Production setup (Supabase)
 
-1. Create a Supabase project and run `supabase/migrations/0001_init.sql` (SQL editor or `supabase db push`). It creates all tables, enums, RLS policies, the `settle_pick` / `correct_settlement` / `publish_pick` / `release_scheduled_picks` RPCs, the immutability trigger for published picks, and the `promo` storage bucket.
-2. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`.
-3. Put your email in `ADMIN_EMAILS`; that account is promoted to `admin` on first sign-in (or run `update public.profiles set role='admin' where email='…'`).
-4. Deploy to Vercel. `vercel.json` schedules `/api/cron/release` once a day (the Hobby plan's limit) to publish scheduled picks; set `CRON_SECRET`. On a Pro plan change the schedule to `*/5 * * * *`, or use Supabase `pg_cron` to call `release_scheduled_picks()` every few minutes. Admins can also press "Release due" on the admin overview at any time.
+1. **Create the schema.** In the Supabase dashboard open SQL editor → New query, paste `supabase/setup.sql`, and run it once. (It is generated from `supabase/migrations/` by `npm run db:bundle`.) It creates every table with explicit least-privilege grants and RLS, the `private` helper schema, the publish/settle/correct RPCs, the immutability trigger, realtime publication, and the `promo` and `hype` storage buckets.
+2. **Auth URLs.** Authentication → URL Configuration: set Site URL to your production URL and add `<site>/auth/callback` to Redirect URLs.
+3. **Environment variables** (Vercel → Project → Settings → Environment Variables, Production):
+   - `NEXT_PUBLIC_SUPABASE_URL` = `https://<project-ref>.supabase.co`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = the `sb_publishable_…` key (or the legacy anon key as `NEXT_PUBLIC_SUPABASE_ANON_KEY`)
+   - `SUPABASE_SECRET_KEY` = the `sb_secret_…` key (or legacy `SUPABASE_SERVICE_ROLE_KEY`). Server only; never prefix with `NEXT_PUBLIC_`.
+   - `NEXT_PUBLIC_SITE_URL` = your production URL
+   - `ADMIN_EMAILS` = your email; that account becomes admin on first sign-in.
+4. **Redeploy**, sign up with the admin email, confirm it, and sign in. The site leaves demo mode as soon as `NEXT_PUBLIC_SUPABASE_URL` is set; the picks ledger starts empty, with no demo records.
+
+The schema is verified by an RLS test suite (roles anon / authenticated / service_role) covering the paywall, immutability, settlement, privilege escalation and RPC lockdown.
 
 ## Billing
 

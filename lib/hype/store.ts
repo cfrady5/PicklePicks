@@ -1,5 +1,5 @@
 import { isDemoMode } from "@/lib/env";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { uid } from "@/lib/utils";
 import type { HypeJob, MemeReference } from "./types";
 
@@ -88,7 +88,7 @@ export const supabaseHypeStore: HypeStore = {
     return rowToJob(data);
   },
   async listJobs(opts = {}) {
-    const sb = await createClient();
+    const sb = createAdminClient();
     let q = sb.from("hype_jobs").select("*").order("created_at", { ascending: false }).limit(opts.limit ?? 50);
     if (opts.pickId) q = q.eq("pick_id", opts.pickId);
     if (opts.active) q = q.in("status", [...ACTIVE]);
@@ -96,14 +96,14 @@ export const supabaseHypeStore: HypeStore = {
     if (error) throw new Error(error.message);
     return (data ?? []).map(rowToJob);
   },
-  async listReferences() { const sb = await createClient(); const { data } = await sb.from("meme_references").select("*").order("created_at", { ascending: false }); return (data ?? []).map(rowToRef); },
+  async listReferences() { const sb = createAdminClient(); const { data } = await sb.from("meme_references").select("*").order("created_at", { ascending: false }); return (data ?? []).map(rowToRef); },
   async addReference(ref) {
-    const sb = await createClient();
+    const sb = createAdminClient();
     const { data, error } = await sb.from("meme_references").insert({ title: ref.title, video_url: ref.videoUrl, duration_sec: ref.durationSec, tags: ref.tags, sports: ref.sports, mood: ref.mood, license_note: ref.licenseNote, source: ref.source, active: ref.active }).select("*").single();
     if (error) throw new Error(error.message);
     return rowToRef(data);
   },
-  async setReferenceActive(id, active) { const sb = await createClient(); await sb.from("meme_references").update({ active }).eq("id", id); },
+  async setReferenceActive(id, active) { const sb = createAdminClient(); await sb.from("meme_references").update({ active }).eq("id", id); },
   async tryLock(id, ms) {
     const sb = createAdminClient();
     const nowIso = new Date().toISOString();

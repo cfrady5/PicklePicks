@@ -6,7 +6,7 @@ import { requireAdmin, actorOf } from "@/lib/auth";
 import { getRepo, type PickInput } from "@/lib/data";
 import { SPORTS, BET_TYPES } from "@/lib/constants";
 import { isDemoMode } from "@/lib/env";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { sendEmail, templates } from "@/lib/email";
 import { after } from "next/server";
 import { HYPE_SETTINGS, startHypeForPick, advanceJob } from "@/lib/hype/pipeline";
@@ -192,7 +192,7 @@ export async function uploadPromo(_prev: AdminState, formData: FormData): Promis
     const url = `data:${file.type};base64,${buf.toString("base64")}`;
     await getRepo().updateSiteContent({ promoImageUrl: url }, actorOf(admin));
   } else {
-    const supabase = await createClient();
+    const supabase = createAdminClient(); // admin already verified above
     const path = `promo/${Date.now()}-${file.name.replace(/[^a-z0-9.\-_]/gi, "_")}`;
     const { error } = await supabase.storage.from("promo").upload(path, file, { contentType: file.type, upsert: false });
     if (error) return { error: error.message };

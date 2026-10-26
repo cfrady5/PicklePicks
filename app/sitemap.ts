@@ -3,6 +3,8 @@ import { SITE_URL } from "@/lib/constants";
 import { getRepo } from "@/lib/data";
 import { isSettled } from "@/lib/stats";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const statics = ["", "/results", "/how-it-works", "/pricing", "/legal/terms", "/legal/privacy", "/responsible-gambling"].map((p) => ({ url: `${SITE_URL}${p}`, changeFrequency: "daily" as const, priority: p === "" ? 1 : 0.7 }));
   let picks: MetadataRoute.Sitemap = [];

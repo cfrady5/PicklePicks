@@ -100,6 +100,15 @@ const rowToContent = (r: Row): SiteContent => ({
   secondaryCta: r.secondary_cta, announcement: r.announcement, promoImageUrl: r.promo_image_url, updatedAt: r.updated_at, updatedBy: r.updated_by ?? "",
 });
 
+/** Display names for community authors. Profiles are private under RLS, so this
+ *  reads only the display_name column with the service role. */
+async function displayNames(ids: (string | null)[]): Promise<Map<string, string>> {
+  const unique = [...new Set(ids.filter((x): x is string => Boolean(x)))];
+  if (!unique.length) return new Map();
+  const { data } = await createAdminClient().from("profiles").select("id, display_name").in("id", unique);
+  return new Map((data ?? []).map((r: Row) => [r.id as string, (r.display_name as string) || "Member"]));
+}
+
 function throwIf(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
@@ -221,7 +230,9 @@ export const supabaseRepo: Repo = {
     return (data ?? []).map(rowToProfile);
   },
   async updateProfile(userId, patch) {
-    const sb = await db();
+    // Users may only update cosmetic columns; role changes must go through the
+    // service role. Callers (setUserRole, ADMIN_EMAILS bootstrap) authorize first.
+    const sb = patch.role !== undefined ? createAdminClient() : await db();
     const row: Row = {};
     if (patch.displayName !== undefined) row.display_name = patch.displayName;
     if (patch.ageVerifiedAt !== undefined) row.age_verified_at = patch.ageVerifiedAt;
@@ -379,17 +390,20 @@ export const supabaseRepo: Repo = {
 
   async listThreads() {
     const sb = await db();
-    const { data } = await sb.from("community_threads").select("*, profiles(display_name), community_posts(count)").order("pinned", { ascending: false }).order("created_at", { ascending: false });
-    return (data ?? []).map((r: Row): CommunityThread => ({ id: r.id, authorId: r.author_id, authorName: r.profiles?.display_name ?? "Member", title: r.title, body: r.body, sport: r.sport_key, pinned: r.pinned, locked: r.locked, createdAt: r.created_at, replyCount: r.community_posts?.[0]?.count ?? 0 }));
+    const { data } = await sb.from("community_threads").select("*, community_posts(count)").order("pinned", { ascending: false }).order("created_at", { ascending: false });
+    const names = await displayNames((data ?? []).map((r: Row) => r.author_id));
+    return (data ?? []).map((r: Row): CommunityThread => ({ id: r.id, authorId: r.author_id, authorName: names.get(r.author_id) ?? "Member", title: r.title, body: r.body, sport: r.sport_key, pinned: r.pinned, locked: r.locked, createdAt: r.created_at, replyCount: r.community_posts?.[0]?.count ?? 0 }));
   },
   async getThread(id) {
+    // RLS on the user client decides whether the caller may see the thread at all.
     const sb = await db();
-    const { data: t } = await sb.from("community_threads").select("*, profiles(display_name)").eq("id", id).maybeSingle();
+    const { data: t } = await sb.from("community_threads").select("*").eq("id", id).maybeSingle();
     if (!t) return null;
-    const { data: posts } = await sb.from("community_posts").select("*, profiles(display_name)").eq("thread_id", id).order("created_at");
+    const { data: posts } = await sb.from("community_posts").select("*").eq("thread_id", id).order("created_at");
+    const names = await displayNames([t.author_id, ...(posts ?? []).map((p: Row) => p.author_id)]);
     return {
-      thread: { id: t.id, authorId: t.author_id, authorName: t.profiles?.display_name ?? "Member", title: t.title, body: t.body, sport: t.sport_key, pinned: t.pinned, locked: t.locked, createdAt: t.created_at, replyCount: posts?.length ?? 0 },
-      posts: (posts ?? []).map((p: Row): CommunityPost => ({ id: p.id, threadId: p.thread_id, authorId: p.author_id, authorName: p.profiles?.display_name ?? "Member", body: p.body, hidden: p.hidden, createdAt: p.created_at })),
+      thread: { id: t.id, authorId: t.author_id, authorName: names.get(t.author_id) ?? "Member", title: t.title, body: t.body, sport: t.sport_key, pinned: t.pinned, locked: t.locked, createdAt: t.created_at, replyCount: posts?.length ?? 0 },
+      posts: (posts ?? []).map((p: Row): CommunityPost => ({ id: p.id, threadId: p.thread_id, authorId: p.author_id, authorName: names.get(p.author_id) ?? "Member", body: p.body, hidden: p.hidden, createdAt: p.created_at })),
     };
   },
   async createThread(input, actor) {

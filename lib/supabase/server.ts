@@ -23,6 +23,6 @@ export async function createClient() {
 
 /** Service-role client. Server only. Bypasses RLS — use sparingly (webhooks, cron). */
 export function createAdminClient() {
-  if (!env.supabaseServiceKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+  if (!env.supabaseServiceKey) throw new Error("SUPABASE_SECRET_KEY (or legacy SUPABASE_SERVICE_ROLE_KEY) is not set");
   return createBareClient(env.supabaseUrl, env.supabaseServiceKey, { auth: { persistSession: false } });
 }

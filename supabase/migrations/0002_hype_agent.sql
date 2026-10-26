@@ -1,5 +1,6 @@
 -- Sports meme video agent: durable job records, budget ledger and the
--- rights-cleared reference clip library.
+-- rights-cleared reference clip library. Admin-only; the app reads and
+-- writes these with the service role after its own admin check.
 
 create table public.hype_jobs (
   id uuid primary key default gen_random_uuid(),
@@ -7,7 +8,7 @@ create table public.hype_jobs (
   status text not null default 'queued' check (status in ('queued','running','waiting_provider','budget_blocked','failed','completed','canceled')),
   step text not null default 'resolve_subject',
   mode text not null default 'live' check (mode in ('live','simulated')),
-  cap_usd numeric(8,2) not null default 2.00,
+  cap_usd numeric(8,2) not null default 2.00 check (cap_usd >= 0),
   reserved_usd numeric(8,2) not null default 0,
   spent_usd numeric(8,2) not null default 0,
   error text,
@@ -17,8 +18,9 @@ create table public.hype_jobs (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create index on public.hype_jobs (status, updated_at);
-create index on public.hype_jobs (pick_id);
+create index hype_jobs_status_updated_idx on public.hype_jobs (status, updated_at);
+create index hype_jobs_pick_idx on public.hype_jobs (pick_id, created_at desc);
+create index hype_jobs_created_by_idx on public.hype_jobs (created_by);
 
 create table public.meme_references (
   id uuid primary key default gen_random_uuid(),
@@ -37,10 +39,14 @@ create table public.meme_references (
 
 insert into storage.buckets (id, name, public) values ('hype', 'hype', true) on conflict do nothing;
 
+grant select, insert, update, delete on public.hype_jobs, public.meme_references to authenticated, service_role;
+
 alter table public.hype_jobs enable row level security;
 alter table public.meme_references enable row level security;
-create policy "admin hype jobs" on public.hype_jobs for all using (public.is_admin()) with check (public.is_admin());
-create policy "admin meme refs" on public.meme_references for all using (public.is_admin()) with check (public.is_admin());
+create policy "admin hype jobs" on public.hype_jobs for all to authenticated
+  using ((select private.is_admin())) with check ((select private.is_admin()));
+create policy "admin meme refs" on public.meme_references for all to authenticated
+  using ((select private.is_admin())) with check ((select private.is_admin()));
 
 -- Optional: run the worker every minute with pg_cron + pg_net (Vercel Hobby crons are daily).
 --   select cron.schedule('hype-worker', '* * * * *', $$
